@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Marhabah – Email Verification</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/+esm" type="module"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fefefe;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 1rem;
+      text-align: center;
+    }
+    .box {
+      max-width: 500px;
+    }
+    .loading {
+      font-size: 1.5rem;
+      color: #555;
+    }
+    .success {
+      font-size: 1.6rem;
+      color: #008000;
+    }
+    .error {
+      font-size: 1.4rem;
+      color: #cc0000;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>Welcome to Marhabah!</h1>
+    <p class="loading">Verifying your email...</p>
+    <p id="statusMessage"></p>
+  </div>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co'; // Replace with your Supabase URL
+    const supabaseAnonKey = 'YOUR_ANON_KEY'; // Replace with your anon key
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    async function verifyEmailFromUrl() {
+      const statusEl = document.getElementById('statusMessage');
+
+      try {
+        const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+
+        if (error) {
+          console.error('Verification failed:', error.message);
+          statusEl.textContent = 'Email verification failed. Please try again.';
+          statusEl.className = 'error';
+          return;
+        }
+
+        statusEl.textContent = '✅ Your email has been verified! You can now return to the app.';
+        statusEl.className = 'success';
+        document.querySelector('.loading').remove();
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        statusEl.textContent = 'Something went wrong.';
+        statusEl.className = 'error';
+      }
+    }
+
+    verifyEmailFromUrl();
+  </script>
+</body>
+</html>
