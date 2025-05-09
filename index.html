@@ -1,141 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Reset Your Password | Marhabah</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f9fafb;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding-top: 40px;
-    }
-
-    .logo {
-      width: 80px;
-      height: auto;
-    }
-
-    .title {
-      font-size: 24px;
-      font-weight: bold;
-      color: #1f2937;
-      margin-top: 10px;
-      margin-bottom: 30px;
-    }
-
-    .container {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 10px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      text-align: left;
-    }
-
-    h2 {
-      color: #1d4ed8;
-      font-size: 20px;
-      margin-bottom: 10px;
-    }
-
-    input, button {
-      width: 100%;
-      padding: 0.75rem;
-      margin: 0.5rem 0;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #1d4ed8;
-      color: white;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #message {
-      color: red;
-      margin-top: 10px;
-    }
-
-    #success {
-      color: green;
-      margin-top: 10px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <img class="logo" src="https://mxwqscooobwlsdgmxjsa.supabase.co/storage/v1/object/public/profile-images//marhaba-icon-blue-t.png" alt="Marhabah Logo" />
-    <div class="title">Marhabah</div>
-    <h2>Reset Your Password</h2>
-    <p>Enter a new password for your Marhabah account:</p>
-    <input type="password" id="newPassword" placeholder="New Password" />
-    <input type="password" id="confirmPassword" placeholder="Confirm Password" />
-    <button onclick="submitNewPassword()">Reset Password</button>
-    <p id="message"></p>
-    <p id="success"></p>
-  </div>
-
-  <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    const email = urlParams.get('email');
-
-    async function submitNewPassword() {
-      const newPassword = document.getElementById('newPassword').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
-      const msg = document.getElementById('message');
-      const success = document.getElementById('success');
-
-      msg.textContent = '';
-      success.textContent = '';
-
-      if (!token || !email) {
-        msg.textContent = 'Missing or invalid token/email.';
-        return;
+  <head>
+    <meta charset="UTF-8" />
+    <title>Email Verification | Marhabah</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9fafb;
+        text-align: center;
+        padding: 40px;
       }
-
-      if (!newPassword || newPassword.length < 8) {
-        msg.textContent = 'Password must be at least 8 characters.';
-        return;
+      img {
+        width: 80px;
+        height: auto;
+        margin-bottom: 10px;
       }
-
-      if (newPassword !== confirmPassword) {
-        msg.textContent = 'Passwords do not match.';
-        return;
+      h1 {
+        font-size: 28px;
+        margin: 0;
+        color: #1f2937;
       }
+      p {
+        font-size: 16px;
+        color: #4b5563;
+      }
+      #status {
+        font-size: 16px;
+        margin-top: 20px;
+        display: none;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  </head>
+  <body>
+    <img src="https://mxwqscooobwlsdgmxjsa.supabase.co/storage/v1/object/public/profile-images//marhaba-icon-blue-t.png" alt="Marhabah Logo" />
+    <h1>Marhabah</h1>
+    <p>Verifying your email...</p>
+    <p id="status" class="error">Something went wrong.</p>
 
-      try {
-        const response = await fetch('https://marhaba-server.onrender.com/api/auth/confirmPasswordReset', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token, email, newPassword }),
-        });
-
-        const result = await response.json();
-        if (result.success) {
-          success.textContent = '✅ Password reset successfully!';
-        } else {
-          msg.textContent = result.error || 'Reset failed.';
+    <script>
+      async function verifyEmail() {
+        const url = new URL(window.location.href);
+        const token = url.searchParams.get('token');
+        const email = url.searchParams.get('email');
+        const statusEl = document.getElementById('status');
+    
+        if (!token || !email) {
+          statusEl.innerText = 'Invalid link.';
+          statusEl.className = 'error';
+          statusEl.style.display = 'block';
+          return;
         }
-      } catch (err) {
-        msg.textContent = 'Server error.';
+    
+        try {
+          const response = await fetch('https://marhaba-server.onrender.com/api/auth/verifyEmail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, email }),
+          });
+    
+          const result = await response.json();
+    
+          if (result.success) {
+            statusEl.innerText = '✅ Email verified successfully!';
+            statusEl.className = 'success';
+          } else {
+            statusEl.innerText = result.error || 'Verification failed.';
+            statusEl.className = 'error';
+          }
+        } catch (err) {
+          statusEl.innerText = 'Something went wrong.';
+          statusEl.className = 'error';
+        }
+    
+        statusEl.style.display = 'block';
       }
-    }
-
-    window.submitNewPassword = submitNewPassword;
-  </script>
-</body>
+    
+      verifyEmail();
+    </script>
+  </body>
 </html>
