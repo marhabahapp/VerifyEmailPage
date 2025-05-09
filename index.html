@@ -1,78 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Marhabah – Email Verification</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/+esm" type="module"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #fefefe;
-      color: #222;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      padding: 1rem;
-      text-align: center;
-    }
-    .box {
-      max-width: 500px;
-    }
-    .loading {
-      font-size: 1.5rem;
-      color: #555;
-    }
-    .success {
-      font-size: 1.6rem;
-      color: #008000;
-    }
-    .error {
-      font-size: 1.4rem;
-      color: #cc0000;
-    }
-  </style>
-</head>
-<body>
-  <div class="box">
-    <h1>Welcome to Marhabah!</h1>
-    <p class="loading">Verifying your email...</p>
-    <p id="statusMessage"></p>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Email Verification | Marhabah</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f9fafb;
+        text-align: center;
+        padding: 40px;
+      }
+      img {
+        width: 80px;
+        height: auto;
+        margin-bottom: 10px;
+      }
+      h1 {
+        font-size: 28px;
+        margin: 0;
+        color: #1f2937;
+      }
+      p {
+        font-size: 16px;
+        color: #4b5563;
+      }
+      #status {
+        font-size: 16px;
+        margin-top: 20px;
+        display: none;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  </head>
+  <body>
+    <img src="https://mxwqscooobwlsdgmxjsa.supabase.co/storage/v1/object/public/profile-images//marhaba-icon-blue-t.png" alt="Marhabah Logo" />
+    <h1>Marhabah</h1>
+    <p>Verifying your email...</p>
+    <p id="status" class="error">Something went wrong.</p>
 
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    <script>
+      const supabase = supabase.createClient(
+        'https://qsfpmdewsesopyiinivw.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14d3FzY29vb2J3bHNkZ214anNhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUzNTI5MDIsImV4cCI6MjA2MDkyODkwMn0.--a_GFcGCB7fbmEtZ-IoVrPETEeYBvtB3BKU9KZ9Szs'
+      );
 
-    const supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co'; // Replace with your Supabase URL
-    const supabaseAnonKey = 'YOUR_ANON_KEY'; // Replace with your anon key
+      async function verifyEmail() {
+        const url = new URL(window.location.href);
+        const token = url.searchParams.get('token');
+        const email = url.searchParams.get('email');
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-    async function verifyEmailFromUrl() {
-      const statusEl = document.getElementById('statusMessage');
-
-      try {
-        const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
-
-        if (error) {
-          console.error('Verification failed:', error.message);
-          statusEl.textContent = 'Email verification failed. Please try again.';
-          statusEl.className = 'error';
+        if (!token || !email) {
+          document.getElementById('status').style.display = 'block';
           return;
         }
 
-        statusEl.textContent = '✅ Your email has been verified! You can now return to the app.';
-        statusEl.className = 'success';
-        document.querySelector('.loading').remove();
-      } catch (err) {
-        console.error('Unexpected error:', err);
-        statusEl.textContent = 'Something went wrong.';
-        statusEl.className = 'error';
-      }
-    }
+        const { data, error } = await supabase.auth.verifyOtp({
+          email,
+          token,
+          type: 'signup', // for initial signups
+        });
 
-    verifyEmailFromUrl();
-  </script>
-</body>
+        const statusEl = document.getElementById('status');
+
+        if (error) {
+          console.error('❌ Verification failed:', error.message);
+          statusEl.innerText = 'Something went wrong.';
+          statusEl.className = 'error';
+          statusEl.style.display = 'block';
+        } else {
+          statusEl.innerText = '✅ Email verified successfully!';
+          statusEl.className = 'success';
+          statusEl.style.display = 'block';
+        }
+      }
+
+      verifyEmail();
+    </script>
+  </body>
 </html>
